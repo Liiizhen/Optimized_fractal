@@ -590,6 +590,29 @@ std::vector<FractalMarker> FractalMarkerDetector::detect(const cv::Mat &img, std
         auto t8 = high_resolution_clock::now();
         kfilter(kpoints);
         assignClass(bwimage, kpoints);
+
+        //// draw keypoints
+        // cv::Mat visImg = img.clone();
+        // if (visImg.channels() == 1)
+        //     cv::cvtColor(visImg, visImg, cv::COLOR_GRAY2BGR);
+
+        // std::vector<cv::Scalar> colors = {
+        //     cv::Scalar(0,255,0),    // class_id=0
+        //     cv::Scalar(0,0,255),    // class_id=1
+        //     cv::Scalar(255,0,0),    // class_id=2
+        //     cv::Scalar(0,255,255),  // class_id=3
+        //     cv::Scalar(255,0,255),  // class_id=4
+        //     cv::Scalar(255,255,0)   // class_id=5
+        // };
+
+        // for (const auto& kp : kpoints) {
+        //     int cid = kp.class_id;
+        //     cv::Scalar color = colors[cid % colors.size()];
+        //     cv::circle(visImg, kp.pt, 5, color, cv::FILLED);
+        //     cv::putText(visImg,"", kp.pt + cv::Point2f(6, -6), cv::FONT_HERSHEY_SIMPLEX, 0.4, color, 1);
+        // }
+        // cv::imwrite("data/keypoints_by_class.png", visImg);
+
         auto t9 = high_resolution_clock::now();
         std::cout << "[opencvfractal] Keypoint filtering & classification: " << duration<double, std::milli>(t9-t8).count() << " ms" << std::endl;
 
@@ -615,8 +638,9 @@ std::vector<FractalMarker> FractalMarkerDetector::detect(const cv::Mat &img, std
 
         // Process each marker
         auto t14 = high_resolution_clock::now();
+        
         std::vector<int> nearestIdxList;
-
+        std::vector<float> distsList;
         for (auto &fm : fractalMarkerSet.fractalMarkerCollection) {
             std::vector<cv::Point2f> imgPoints;
             std::vector<cv::Point2f> objPoints;
@@ -636,6 +660,7 @@ std::vector<FractalMarker> FractalMarkerDetector::detect(const cv::Mat &img, std
         
             if (consider) {
                 for (size_t idx = 0; idx < imgPoints.size(); idx++) {
+                    // std::cout << objKeyPoints[idx].class_id << std::endl;
                     if (imgPoints[idx].x > 0 && imgPoints[idx].x < img.cols &&
                         imgPoints[idx].y > 0 && imgPoints[idx].y < img.rows) {
                         std::vector<float> query = {imgPoints[idx].x, imgPoints[idx].y};
@@ -645,35 +670,35 @@ std::vector<FractalMarker> FractalMarkerDetector::detect(const cv::Mat &img, std
                         Kdtree.radiusSearch(query, indices, dists, 400.0, 1, cv::flann::SearchParams());
                         
                         int nearestIdx = indices[0];
-                        for (size_t i = 0; i < indices.size(); ++i) {
-                            int currentIdx = indices[i];
-                            if (kpoints[currentIdx].class_id == objKeyPoints[idx].class_id) {
-                                if (p2d.empty() || dists[i] < dists[nearestIdx]) {
-                                    nearestIdx = currentIdx;
-                                }
-                            }
+
+                        float newDist = cv::norm(cv::Point2f(kpoints[nearestIdx].pt) - cv::Point2f(imgPoints[idx]));
+                        
+                        // This is my next step, adjusting the distance threshold
+                        // -to reach a good performance on different images
+                        if (kpoints[nearestIdx].class_id != objKeyPoints[idx].class_id||dists[0] > 320||dists[0] == 0) {
+                            continue;
                         }
-                    
+                        // std::cout<< dists[0]<< std::endl;
                         if (nearestIdx != -1) {
                             bool duplicateFound = false;
                             for (size_t i = 0; i < nearestIdxList.size(); ++i) {
                                 if (nearestIdxList[i] == nearestIdx) {
                                     duplicateFound = true;
-                                
-                                    float existingDist = cv::norm(p2d[i] - kpoints[nearestIdx].pt);
-                                    float newDist = cv::norm(cv::Point2f(kpoints[nearestIdx].pt.x, kpoints[nearestIdx].pt.y) - cv::Point2f(objPoints[idx].x, objPoints[idx].y));
-                                
+                                    float existingDist = distsList[i];
+                                    // std::cout << "New distance: " << newDist << ", Existing distance: " << existingDist << std::endl;
                                     if (newDist < existingDist) {
                                         p2d[i] = kpoints[nearestIdx].pt;
                                         p3d[i] = cv::Point3f(objPoints[idx].x, objPoints[idx].y, 0);
+                                        distsList[i] = newDist; // update distsList
                                     }
-                                
                                     break;
                                 }
                             }
                         
                             if (!duplicateFound) {
                                 nearestIdxList.push_back(nearestIdx);
+                                distsList.push_back(newDist);              
+
                                 p2d.push_back(kpoints[nearestIdx].pt);
                                 p3d.push_back(cv::Point3f(objPoints[idx].x, objPoints[idx].y, 0));
                             }
@@ -1089,7 +1114,6 @@ void FractalMarkerDetector::assignClass(const cv::Mat &im, std::vector<cv::KeyPo
             kp.class_id = 2;
     }
 }
-
 }
 #endif
 
