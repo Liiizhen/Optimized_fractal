@@ -7,7 +7,7 @@
 
 int main() {
     try {
-        std::string imagePath = "/mnt/d/code/nano/Fractal/data/input/test.png";
+        std::string imagePath = "data/input/test.png";
         cv::Mat imagemodel = cv::imread(imagePath);
 
         std::string distortion_672_504 = "data/distortion_672_504.jpg";
