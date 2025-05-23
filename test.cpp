@@ -95,17 +95,17 @@ int main() {
         std::vector<cv::Point> mappedP3DPoints;
 
         for (size_t i = 0; i < opencvPoints2D.size(); ++i) {
-            cv::circle(imgWithP2D, opencvPoints2D[i], 3, cv::Scalar(0, 255, 0), cv::FILLED); // 绿色点
+            cv::circle(imgWithP2D, opencvPoints2D[i], 3, cv::Scalar(0, 255, 0), cv::FILLED);
         
             int imgWidth = imagemodel.cols;
             int imgHeight = imagemodel.rows;
-            int x = static_cast<int>((opencvPoints3D[i].x + 1.0) * 0.5 * imgWidth);  // 将 -1 到 1 映射到 0 到 imgWidth
-            int y = static_cast<int>((1.0 - (opencvPoints3D[i].y + 1.0) * 0.5) * imgHeight);  // 将 -1 到 1 映射到 0 到 imgHeight
+            int x = static_cast<int>((opencvPoints3D[i].x + 1.0) * 0.5 * imgWidth);
+            int y = static_cast<int>((1.0 - (opencvPoints3D[i].y + 1.0) * 0.5) * imgHeight);
             cv::Point mappedPt(x, y);
             mappedP3DPoints.push_back(mappedPt);
         
             if (x >= 0 && x < imgWidth && y >= 0 && y < imgHeight) {
-                cv::circle(imageWithP3D, mappedPt, 5, cv::Scalar(0, 0, 255), cv::FILLED); // 红色点
+                cv::circle(imageWithP3D, mappedPt, 5, cv::Scalar(0, 0, 255), cv::FILLED);
             }
         }
 
@@ -132,7 +132,7 @@ int main() {
                 static_cast<int>(opencvPoints2D[i].y * scaleP2D)
             );
             cv::Point pt2 = mappedP3DPoints[i] + cv::Point(offsetX, 0);
-            cv::line(combinedImage, pt1, pt2, cv::Scalar(0, 0, 255), 1); // 红色线
+            cv::line(combinedImage, pt1, pt2, cv::Scalar(0, 0, 255), 1);
         }
 
         cv::namedWindow("P2D and P3D Points", cv::WINDOW_NORMAL);
