@@ -553,13 +553,13 @@ std::vector<FractalMarker> FractalMarkerDetector::detect(const cv::Mat &img, std
     else 
         bwimage = img;
     auto t1 = high_resolution_clock::now();
-    std::cout << "[opencvfractal] Convert to gray: " << duration<double, std::milli>(t1-t0).count() << " ms" << std::endl;
+    // std::cout << "[opencvfractal] Convert to gray: " << duration<double, std::milli>(t1-t0).count() << " ms" << std::endl;
 
     // Fractal marker detection
     auto t2 = high_resolution_clock::now();
     std::vector<FractalMarker> detected = detect(bwimage);
     auto t3 = high_resolution_clock::now();
-    std::cout << "[opencvfractal] Marker detection: " << duration<double, std::milli>(t3-t2).count() << " ms" << std::endl;
+    // std::cout << "[opencvfractal] Marker detection: " << duration<double, std::milli>(t3-t2).count() << " ms" << std::endl;
 
     if(detected.size() > 0) {
         // Prepare points for homography
@@ -576,7 +576,7 @@ std::vector<FractalMarker> FractalMarkerDetector::detect(const cv::Mat &img, std
             }
         }
         auto t5 = high_resolution_clock::now();
-        std::cout << "[opencvfractal] Homography prep: " << duration<double, std::milli>(t5-t4).count() << " ms" << std::endl;
+        // std::cout << "[opencvfractal] Homography prep: " << duration<double, std::milli>(t5-t4).count() << " ms" << std::endl;
 
         // FAST feature detection
         auto t6 = high_resolution_clock::now();
@@ -584,7 +584,7 @@ std::vector<FractalMarker> FractalMarkerDetector::detect(const cv::Mat &img, std
         cv::Ptr<cv::FastFeatureDetector> fd = cv::FastFeatureDetector::create();
         fd->detect(bwimage, kpoints);
         auto t7 = high_resolution_clock::now();
-        std::cout << "[opencvfractal] FAST features: " << duration<double, std::milli>(t7-t6).count() << " ms" << std::endl;
+        // std::cout << "[opencvfractal] FAST features: " << duration<double, std::milli>(t7-t6).count() << " ms" << std::endl;
         
         // Filter keypoints
         auto t8 = high_resolution_clock::now();
@@ -614,7 +614,7 @@ std::vector<FractalMarker> FractalMarkerDetector::detect(const cv::Mat &img, std
         // cv::imwrite("data/keypoints_by_class.png", visImg);
 
         auto t9 = high_resolution_clock::now();
-        std::cout << "[opencvfractal] Keypoint filtering & classification: " << duration<double, std::milli>(t9-t8).count() << " ms" << std::endl;
+        // std::cout << "[opencvfractal] Keypoint filtering & classification: " << duration<double, std::milli>(t9-t8).count() << " ms" << std::endl;
 
         // Build FLANN index
         auto t10 = high_resolution_clock::now();
@@ -628,13 +628,13 @@ std::vector<FractalMarker> FractalMarkerDetector::detect(const cv::Mat &img, std
         cv::flann::Index Kdtree;
         Kdtree.build(kpointsMat, cv::flann::KDTreeIndexParams(1), cvflann::FLANN_DIST_EUCLIDEAN);
         auto t11 = high_resolution_clock::now();
-        std::cout << "[opencvfractal] KD-tree build: " << duration<double, std::milli>(t11-t10).count() << " ms" << std::endl;
+        // std::cout << "[opencvfractal] KD-tree build: " << duration<double, std::milli>(t11-t10).count() << " ms" << std::endl;
 
         // Compute homography
         auto t12 = high_resolution_clock::now();
         cv::Mat H = cv::findHomography(objpoints, imgpoints);
         auto t13 = high_resolution_clock::now();
-        std::cout << "[opencvfractal] Homography calc: " << duration<double, std::milli>(t13-t12).count() << " ms" << std::endl;
+        // std::cout << "[opencvfractal] Homography calc: " << duration<double, std::milli>(t13-t12).count() << " ms" << std::endl;
 
         // Process each marker
         auto t14 = high_resolution_clock::now();
@@ -721,8 +721,7 @@ std::vector<FractalMarker> FractalMarkerDetector::detect(const cv::Mat &img, std
             }
         }
         auto t15 = high_resolution_clock::now();
-        std::cout << "[opencvfractal] Keypoints matching: " << duration<double, std::milli>(t15-t14).count() << " ms" << std::endl;
-
+        // std::cout << "[opencvfractal] Keypoints matching: " << duration<double, std::milli>(t15-t14+t11-t10).count() << " ms" << std::endl;
         // Subpixel refinement
         auto t16 = high_resolution_clock::now();
         if(p2d.size() > 0) {
@@ -732,11 +731,11 @@ std::vector<FractalMarker> FractalMarkerDetector::detect(const cv::Mat &img, std
             cornerSubPix(bwimage, p2d, winSize, zeroZone, criteria);
         }
         auto t17 = high_resolution_clock::now();
-        std::cout << "[opencvfractal] Subpixel refinement: " << duration<double, std::milli>(t17-t16).count() << " ms" << std::endl;
+        // std::cout << "[opencvfractal] Subpixel refinement: " << duration<double, std::milli>(t17-t16).count() << " ms" << std::endl;
     }
 
     auto tEnd = high_resolution_clock::now();
-    std::cout << "[opencvfractal] Total: " << duration<double, std::milli>(tEnd-t0).count() << " ms" << std::endl;
+    // std::cout << "[opencvfractal] Total: " << duration<double, std::milli>(tEnd-t0).count() << " ms" << std::endl;
 
     return detected;
 }

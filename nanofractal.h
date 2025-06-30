@@ -1262,13 +1262,13 @@ std::vector<FractalMarker> FractalMarkerDetector::detect(const cv::Mat &img, std
         cv::cvtColor(img,bwimage,cv::COLOR_BGR2GRAY);
     else bwimage=img;
     auto t1 = high_resolution_clock::now();
-    std::cout << "[nanofractal]  Convert to gray: " << duration<double, std::milli>(t1-t0).count() << " ms" << std::endl;
+    // std::cout << "[nanofractal]  Convert to gray: " << duration<double, std::milli>(t1-t0).count() << " ms" << std::endl;
 
     //Fractal marker detection
     auto t2 = high_resolution_clock::now();
     std::vector<FractalMarker> detected =  detect(bwimage);
     auto t3 = high_resolution_clock::now();
-    std::cout << "[nanofractal] Marker detection: " << duration<double, std::milli>(t3-t2).count() << " ms" << std::endl;
+    // std::cout << "[nanofractal] Marker detection: " << duration<double, std::milli>(t3-t2).count() << " ms" << std::endl;
 
     if(detected.size() > 0)
     {
@@ -1288,7 +1288,7 @@ std::vector<FractalMarker> FractalMarkerDetector::detect(const cv::Mat &img, std
             }
         }
         auto t5 = high_resolution_clock::now();
-        std::cout << "[nanofractal] Homography prep: " << duration<double, std::milli>(t5-t4).count() << " ms" << std::endl;
+        // std::cout << "[nanofractal] Homography prep: " << duration<double, std::milli>(t5-t4).count() << " ms" << std::endl;
 
         //FAST
         auto t6 = high_resolution_clock::now();
@@ -1296,25 +1296,25 @@ std::vector<FractalMarker> FractalMarkerDetector::detect(const cv::Mat &img, std
         cv::Ptr<cv::FastFeatureDetector> fd = cv::FastFeatureDetector::create();
         fd->detect(bwimage, kpoints);
         auto t7 = high_resolution_clock::now();
-        std::cout << "[nanofractal] FAST features: " << duration<double, std::milli>(t7-t6).count() << " ms" << std::endl;
+        // std::cout << "[nanofractal] FAST features: " << duration<double, std::milli>(t7-t6).count() << " ms" << std::endl;
 
         //Filter kpoints (low response) and removing duplicated.
         auto t8 = high_resolution_clock::now();
         _private::kfilter(kpoints);
         _private::assignClass(bwimage, kpoints);
         auto t9 = high_resolution_clock::now();
-        std::cout << "[nanofractal] Keypoint filtering & classification: " << duration<double, std::milli>(t9-t8).count() << " ms" << std::endl;
+        // std::cout << "[nanofractal] Keypoint filtering & classification: " << duration<double, std::milli>(t9-t8).count() << " ms" << std::endl;
 
         auto t10 = high_resolution_clock::now();
         _private::picoflann::KdTreeIndex<2,_private::PicoFlann_KeyPointAdapter>  kdtree;
         kdtree.build(kpoints);
         auto t11 = high_resolution_clock::now();
-        std::cout << "[nanofractal] KD-tree build: " << duration<double, std::milli>(t11-t10).count() << " ms" << std::endl;
+        // std::cout << "[nanofractal] KD-tree build: " << duration<double, std::milli>(t11-t10).count() << " ms" << std::endl;
 
         auto t12 = high_resolution_clock::now();
         cv::Mat H = cv::findHomography(objpoints, imgpoints);
         auto t13 = high_resolution_clock::now();
-        std::cout << "[nanofractal] Homography calc: " << duration<double, std::milli>(t13-t12).count() << " ms" << std::endl;
+        // std::cout << "[nanofractal] Homography calc: " << duration<double, std::milli>(t13-t12).count() << " ms" << std::endl;
 
         auto t14 = high_resolution_clock::now();
         for(auto &fm:fractalMarkerSet.fractalMarkerCollection)
@@ -1374,7 +1374,7 @@ std::vector<FractalMarker> FractalMarkerDetector::detect(const cv::Mat &img, std
             }
         }
         auto t15 = high_resolution_clock::now();
-        std::cout << "[nanofractal] Keypoints matching: " << duration<double, std::milli>(t15-t14).count() << " ms" << std::endl;
+        // std::cout << "[nanofractal] Keypoints matching: " << duration<double, std::milli>(t15-t14+t11-t10).count() << " ms" << std::endl;
 
         if(p2d.size()>0)
         {
@@ -1385,12 +1385,12 @@ std::vector<FractalMarker> FractalMarkerDetector::detect(const cv::Mat &img, std
             cv::TermCriteria criteria( cv::TermCriteria::MAX_ITER | cv::TermCriteria::EPS, 12, 0.005);
             cornerSubPix(bwimage, p2d, winSize, zeroZone, criteria);
             auto t17 = high_resolution_clock::now();
-            std::cout << "[nanofractal] Subpixel refinement: " << duration<double, std::milli>(t17-t16).count() << " ms" << std::endl;
+            // std::cout << "[nanofractal] Subpixel refinement: " << duration<double, std::milli>(t17-t16).count() << " ms" << std::endl;
         }
     }
 
     auto tEnd = high_resolution_clock::now();
-    std::cout << "[nanofractal] Total: " << duration<double, std::milli>(tEnd-t0).count() << " ms" << std::endl;
+    // std::cout << "[nanofractal] Total: " << duration<double, std::milli>(tEnd-t0).count() << " ms" << std::endl;
 
     return detected;
 }
