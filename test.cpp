@@ -94,6 +94,7 @@ int main() {
 // ...existing code...
 std::vector<cv::Point> mappedP3DPoints;
 
+<<<<<<< HEAD
 for (size_t i = 0; i < opencvPoints2D.size(); ++i) {
     cv::circle(imgWithP2D, opencvPoints2D[i], 3, cv::Scalar(0, 255, 0), cv::FILLED);
 
@@ -107,6 +108,24 @@ for (size_t i = 0; i < opencvPoints2D.size(); ++i) {
     if (x >= 0 && x < imgWidth && y >= 0 && y < imgHeight) {
         cv::circle(imageWithP3D, mappedPt, 5, cv::Scalar(0, 0, 255), cv::FILLED);
     }
+=======
+        std::vector<cv::Point> mappedP3DPoints;
+
+        for (size_t i = 0; i < opencvPoints2D.size(); ++i) {
+            cv::circle(imgWithP2D, opencvPoints2D[i], 3, cv::Scalar(0, 255, 0), cv::FILLED);
+        
+            int imgWidth = imagemodel.cols;
+            int imgHeight = imagemodel.rows;
+            int x = static_cast<int>((opencvPoints3D[i].x + 1.0) * 0.5 * imgWidth);
+            int y = static_cast<int>((1.0 - (opencvPoints3D[i].y + 1.0) * 0.5) * imgHeight);
+            cv::Point mappedPt(x, y);
+            mappedP3DPoints.push_back(mappedPt);
+        
+            if (x >= 0 && x < imgWidth && y >= 0 && y < imgHeight) {
+                cv::circle(imageWithP3D, mappedPt, 5, cv::Scalar(0, 0, 255), cv::FILLED);
+            }
+        }
+>>>>>>> 5c5145ee5a3ad07751bc95e018c85f35c85da557
 
     // 每10个点展示一次窗口
     if ((i + 1) % 10 == 0 || i == opencvPoints2D.size() - 1) {
@@ -134,8 +153,13 @@ for (size_t i = 0; i < opencvPoints2D.size(); ++i) {
                 static_cast<int>(opencvPoints2D[j].x * scaleP2D),
                 static_cast<int>(opencvPoints2D[j].y * scaleP2D)
             );
+<<<<<<< HEAD
             cv::Point pt2 = mappedP3DPoints[j] + cv::Point(offsetX, 0);
             cv::line(tempCombinedImage, pt1, pt2, cv::Scalar(0, 0, 255), 1);
+=======
+            cv::Point pt2 = mappedP3DPoints[i] + cv::Point(offsetX, 0);
+            cv::line(combinedImage, pt1, pt2, cv::Scalar(0, 0, 255), 1);
+>>>>>>> 5c5145ee5a3ad07751bc95e018c85f35c85da557
         }
 
         cv::namedWindow("P2D and P3D Points", cv::WINDOW_NORMAL);
